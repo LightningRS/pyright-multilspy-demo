@@ -25,15 +25,16 @@ A very simple demonstration of using pyright language server with `multilspy`.
     uv run tools/init_pyright.py -f
     ```
 
-3. Run `demo_pyright`:
+3. Run demo under `lsp_demo`:
 
     ```sh
-    uv run -m demo_pyright
+    uv run -m lsp_demo.demo_pyright
+    uv run -m lsp_demo.demo_dual
     ```
 
 4. You should see the demo result.
 
-    ![demo](res/demo-result.png)
+   ![demo](res/demo-result.png)
 
 ## Dev Notes
 

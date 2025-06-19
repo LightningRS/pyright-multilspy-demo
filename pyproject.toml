@@ -11,3 +11,8 @@ dependencies = [
     "rich>=14.0.0",
     "richuru>=0.1.1",
 ]
+
+[tool.uv]
+override-dependencies = [
+    "jedi-language-server==0.45.0",
+]

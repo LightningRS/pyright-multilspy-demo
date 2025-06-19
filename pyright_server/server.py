@@ -7,27 +7,13 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import AsyncIterator, List, Optional
 
-from loguru import logger as loguru_logger
 from multilspy import multilspy_types
 from multilspy.language_server import LanguageServer
 from multilspy.lsp_protocol_handler.lsp_types import InitializeParams
 from multilspy.lsp_protocol_handler.server import ProcessLaunchInfo
 from multilspy.multilspy_config import MultilspyConfig
-from multilspy.multilspy_logger import MultilspyLogger
 
-
-class MultilspyLoguruLogger(MultilspyLogger):
-    """Use loguru for logging.
-    """
-    # noinspection PyMissingConstructor
-    def __init__(self) -> None:
-        self.logger = loguru_logger.bind(name="multilspy")
-
-    def log(self, debug_message: str, level: int, sanitized_error_message: str = "") -> None:
-        self.logger.log(
-            logging.getLevelName(level),
-            debug_message,
-        )
+from .logger import MultilspyLoguruLogger
 
 
 class PyRightServer(LanguageServer):
@@ -50,11 +36,40 @@ class PyRightServer(LanguageServer):
             "python",
         )
         self.python_path = str(python_path) if python_path else 'python'
+        self.settings = {
+            "python": {
+                "analysis": {
+                    "autoImportCompletions": True,
+                    "autoSearchPaths": True,
+                    "extraPaths": [],
+                    "stubPath": "typings",
+                    "diagnosticMode": "openFilesOnly",
+                    "include": [],
+                    "exclude": [],
+                    "ignore": [],
+                    "diagnosticSeverityOverrides": {},
+                    "logLevel": "Information",
+                    "typeCheckingMode": "standard",
+                    "typeshedPaths": [],
+                    "useLibraryCodeForTypes": True
+                },
+                "venvPath": "",
+                "pythonPath": self.python_path,
+            },
+            "pyright": {
+                "disableLanguageServices": False,
+                "disableTaggedHints": False,
+                "disableOrganizeImports": False,
+                "disablePullDiagnostics": False,
+                "trace": {"server": "verbose"},
+            },
+        }
 
         if config.trace_lsp_communication:
             # Dump JSON string when tracing lsp communication.
             def logging_fn(source, target, msg):
-                self.logger.log(f"LSP: {source} -> {target}:\n{json.dumps(msg)}", logging.DEBUG)
+                msg_type = 'notification' if 'id' not in msg else f'request #{msg["id"]}' if 'params' in msg else f'response #{msg["id"]}'
+                self.logger.log(f"Pyright LSP: {source} -> {target} {msg_type}:\n{json.dumps(msg)}", logging.DEBUG)
             self.server.logger = logging_fn
 
     def _get_initialize_params(self, repository_absolute_path: str) -> InitializeParams:
@@ -74,22 +89,31 @@ class PyRightServer(LanguageServer):
 
     @asynccontextmanager
     async def start_server(self) -> AsyncIterator["PyRightServer"]:
-        async def execute_client_command_handler(params):
-            return []
+        async def handle_workspace_configuration(params):
+            res = dict()
+            for conf_item in params['items']:
+                section = conf_item['section']
+                if section == 'python':
+                    res['python'] = self.settings['python']
+                elif section == 'pyright':
+                    res['pyright'] = self.settings['pyright']
+                elif section == 'python.analysis':
+                    res.setdefault('python', dict())['analysis'] = \
+                        self.settings['python']['analysis']
+            return res
 
         async def do_nothing(params):
             return
 
         async def window_log_message(msg):
-            self.logger.log(f"LSP: window/logMessage: {msg}", logging.INFO)
+            self.logger.log(f"Pyright LSP: window/logMessage: {msg}", logging.INFO)
+
+        self.server.on_notification("window/logMessage", window_log_message)
 
         self.server.on_request("client/registerCapability", do_nothing)
-        self.server.on_notification("language/status", do_nothing)
-        self.server.on_notification("window/logMessage", window_log_message)
-        self.server.on_request("workspace/executeClientCommand", execute_client_command_handler)
-        self.server.on_notification("$/progress", do_nothing)
-        self.server.on_notification("textDocument/publishDiagnostics", do_nothing)
-        self.server.on_notification("language/actionableNotification", do_nothing)
+        self.server.on_request("workspace/configuration", handle_workspace_configuration)
+        self.server.on_request("workspace/diagnostic/refresh", do_nothing)
+        self.server.on_request("client/unregisterCapability", do_nothing)
 
         async with super().start_server():
             self.logger.log("Starting pyright server process", logging.INFO)
@@ -99,20 +123,7 @@ class PyRightServer(LanguageServer):
             self.server.notify.initialized({})
             self.server.send_notification(
                 method="workspace/didChangeConfiguration",
-                params={
-                    "settings": {
-                        "python": {
-                            "pythonPath": self.python_path,
-                        },
-                        "pyright": {
-                            "disableLanguageServices": False,
-                            "disableTaggedHints": False,
-                            "disableOrganizeImports": False,
-                            "disablePullDiagnostics": False,
-                            "trace": {"server": "verbose"},
-                        },
-                    }
-                },
+                params={"settings": self.settings},
             )
 
             yield self

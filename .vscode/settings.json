@@ -5,7 +5,8 @@
         "loguru",
         "multilspy",
         "pyright",
-        "richuru"
+        "richuru",
+        "typeshed"
     ],
     "[json]": {
         "editor.tabSize": 2

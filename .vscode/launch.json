@@ -5,10 +5,17 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug demo_pyright",
+            "name": "Debug lsp_demo.demo_pyright",
             "type": "debugpy",
             "request": "launch",
-            "module": "demo_pyright",
+            "module": "lsp_demo.demo_pyright",
+            "justMyCode": false
+        },
+        {
+            "name": "Debug lsp_demo.demo_dual",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "lsp_demo.demo_dual",
             "justMyCode": false
         }
     ]
