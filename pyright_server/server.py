@@ -24,7 +24,7 @@ class PyRightServer(LanguageServer):
             repository_root_path: str,
             python_path: Optional[Path] = None,
     ):
-        pyright_root = Path(__file__).parent.parent.parent / "third_party" / "pyright" / "package"
+        pyright_root = Path(__file__).parent.parent / "third_party" / "pyright" / "package"
         super().__init__(
             config,
             logger,

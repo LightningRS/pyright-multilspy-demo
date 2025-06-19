@@ -38,7 +38,6 @@ async def main():
     )
     async with lsp.start_server():
         logger.info("Requesting definition of G_VAR in demo1.py...")
-        demo1_path = test_root / 'demo1.py'
         with lsp.open_file(relative_file_path='demo1.py'):
             res = await lsp.request_definition(
                 relative_file_path='demo1.py',
@@ -57,16 +56,6 @@ async def main():
 
             res = await lsp.request_document_symbols(relative_file_path='demo1.py')
             logger.info("Document symbols:\n" + json.dumps(res, indent=2, ensure_ascii=False))
-
-            res = await lsp.server.send_request(
-                method='textDocument/semanticTokens/full',
-                params={
-                    'textDocument': {
-                        "uri": demo1_path.as_uri(),
-                    }
-                }
-            )
-            logger.info("Semantic tokens:\n" + json.dumps(res, indent=2, ensure_ascii=False))
 
 
 if __name__ == "__main__":
