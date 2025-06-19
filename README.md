@@ -1,6 +1,6 @@
 # pyright-multilspy-demo
 
-A very simple demonstration of using pyright language server with `multilspy`.
+A very simple demonstration of using `jedi` and `pyright` language server with `multilspy`.
 
 ## Prerequisites
 
@@ -42,6 +42,7 @@ A very simple demonstration of using pyright language server with `multilspy`.
 
 ## References
 
-- [pyright](https://github.com/microsoft/pyright)
-- [multilspy](https://github.com/multilspy/multilspy)
 - [Language Server Protocol Specification](https://microsoft.github.io/language-server-protocol/specifications/specification-current)
+- [pyright](https://github.com/microsoft/pyright)
+- [jedi-language-server](https://github.com/pappasam/jedi-language-server)
+- [multilspy](https://github.com/multilspy/multilspy)
