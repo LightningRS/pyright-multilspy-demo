@@ -1,0 +1,13 @@
+{
+    "cSpell.words": [
+        "getpid",
+        "langserver",
+        "loguru",
+        "multilspy",
+        "pyright",
+        "richuru"
+    ],
+    "[json]": {
+        "editor.tabSize": 2
+    }
+}
